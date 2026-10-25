@@ -59,7 +59,42 @@ button:focus-visible,input:focus-visible,select:focus-visible,.pcard:focus-visib
 .cta svg{flex:none}
 
 /* two mode tabs */
-.modes{flex:none; display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 0 calc(12px + env(safe-area-inset-bottom, 0px))}
+.modes{flex:none; display:grid; grid-template-columns:auto 1fr 1fr; gap:10px; padding:0 0 calc(12px + env(safe-area-inset-bottom, 0px))}
+.modes:has(#newBtn[hidden]){grid-template-columns:1fr 1fr}
+.newidea{height:62px; width:78px; border-radius:18px; border:2.5px solid var(--ink); background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; padding:0 4px; font-size:12.5px; line-height:1.05; text-align:center}
+.newidea:active{transform:scale(.96)}
+
+/* вводный экран: роли */
+.roles{flex:1; min-height:0; display:flex; flex-direction:column; gap:10px; justify-content:center}
+.roles h2{margin-bottom:6px}
+.role{border:2.5px solid var(--ink); border-radius:16px; background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; padding:14px 6px; text-align:center; min-width:0}
+.role span{font-size:14px; line-height:1.15; max-width:100%; overflow-wrap:anywhere}
+.role-grid .role{aspect-ratio:1/1}
+.role[aria-pressed=true]{background:var(--ink); color:var(--card)}
+.role.main{align-self:center; width:min(100%,260px); flex-direction:row; gap:12px; padding:16px 22px}
+.role.main span{font-size:17px}
+.role-grid{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px}
+
+/* выбор эпохи одной картой */
+.stage{flex:1; min-height:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; container-type:size}
+.stage .pcard{width:min(62cqw, calc((100cqh - 80px) * 5 / 7)); aspect-ratio:5/7; touch-action:pan-y}
+.pcard.era{background:var(--ink); color:var(--card); gap:14px}
+.pcard.era .kind{color:color-mix(in srgb, var(--card) 62%, var(--ink))}
+.pcard.era .name{font-family:var(--f-caps); font-size:17px; line-height:1.4; text-transform:uppercase}
+.pcard.era .count{position:absolute; bottom:14px; left:0; right:0; text-align:center; font-size:14px; color:color-mix(in srgb, var(--card) 62%, var(--ink))}
+.eranav{display:flex; align-items:center; gap:10px}
+.eranav .mini{width:46px; height:46px}
+.eranav .pill{padding:8px 14px}
+
+/* маленькая карта эпохи над столом */
+.era-mini{align-self:center; display:flex; align-items:center; gap:10px; background:none; border:none; padding:0}
+.era-mini .cardlet{width:44px; aspect-ratio:5/7; border-radius:8px; background:var(--ink); color:var(--card); display:flex; align-items:center; justify-content:center; border:2px solid var(--ink)}
+.era-mini b{font-family:var(--f-caps); font-weight:400; font-size:11px; text-transform:uppercase; text-align:left; line-height:1.5}
+.era-mini small{display:block; font-size:13px; color:var(--ink-3)}
+
+/* строка ремесла в рецепте */
+.extra{margin-top:12px; border:2.5px dashed var(--ink); border-radius:16px; padding:12px 16px; font-size:16.5px; line-height:1.4}
+.extra b{display:block; font-family:var(--f-caps); font-weight:400; font-size:10px; letter-spacing:.06em; margin-bottom:6px}
 .mode{height:62px; border-radius:18px; border:2.5px solid var(--ink); background:var(--card); display:flex; align-items:center; justify-content:center; gap:10px; font-family:var(--f-caps); font-size:12px; text-transform:uppercase; letter-spacing:.03em}
 .mode[aria-pressed=true]{background:var(--ink); color:var(--card)}
 
@@ -182,7 +217,7 @@ button.slot{cursor:pointer}
 
 <div class="app" id="app" lang="ru">
   <header class="top">
-    <button class="sq" id="eraBtn" type="button" aria-label="Выбрать эпоху"></button>
+    <button class="sq" id="menuBtn" type="button" aria-label="Настройки: роль, тема, звук"></button>
     <div class="ttl"><b>INKLING</b><small id="ttlSub">лавка идей</small></div>
     <button class="rd" id="shelfBtn" type="button" aria-label="Полка" aria-pressed="false"></button>
   </header>
@@ -192,6 +227,7 @@ button.slot{cursor:pointer}
   </main>
   <button class="cta" id="brewBtn" type="button"></button>
   <nav class="modes" aria-label="Что варим">
+    <button class="newidea" id="newBtn" type="button" aria-label="Новая идея: начать заново с выбора эпохи"></button>
     <button class="mode" data-m="world" type="button"></button>
     <button class="mode" data-m="char" type="button"></button>
   </nav>
@@ -405,14 +441,49 @@ const MODE={
   world:{name:'Мир', icon:'place', kinds:{a:['Среда','place'], b:['Предмет','obj'], c:['Воздух','mood'], link:['Звено','link']}},
   char:{name:'Персонаж', icon:'hero', kinds:{a:['Облик','hero'], b:['Деталь','gem'], c:['Манера','wave'], link:['Звено','link']}}
 };
+Object.assign(ICONS,{
+  scroll:'<path d="M6.5 3h11a2 2 0 0 1 2 2v12.5"/><path d="M6.5 3a2.2 2.2 0 0 0-2.2 2.2V7h4.4"/><path d="M8.7 5v14a2 2 0 0 0 2 2h8.4a2 2 0 0 0 2-2v-1.5H10.7"/><path d="M11.5 8.5h5M11.5 11.5h5M11.5 14.5h3"/>',
+  brush:'<path d="M19 2.8l2.2 2.2-8.6 8.6-2.2-2.2z"/><path d="M9.6 12.3c-2.8-.2-4.6 1.6-4.8 4-.2 2-.9 3.2-2 4 3.4.6 7.4-.2 8.4-3.4.4-1.4-.2-3.2-1.6-4.6z"/>',
+  camera:'<rect x="2.5" y="9" width="13" height="10" rx="1.5"/><path d="M15.5 12.2l6-3v9.6l-6-3"/><circle cx="6" cy="5.6" r="2.6"/><circle cx="12" cy="5.6" r="2.6"/>',
+  pad:'<path d="M6.5 8h11a4.5 4.5 0 0 1 4.3 5.8l-1 3.4a2.4 2.4 0 0 1-4 1L14.5 16h-5l-2.3 2.2a2.4 2.4 0 0 1-4-1l-1-3.4A4.5 4.5 0 0 1 6.5 8z"/><path d="M8 10.5v3M6.5 12h3"/><circle cx="15.5" cy="11" r=".9" fill="currentColor"/><circle cx="17.5" cy="13" r=".9" fill="currentColor"/>',
+  bulb:'<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.7.5 1.1 1.3 1.1 2.2h5c0-.9.4-1.7 1.1-2.2A6 6 0 0 0 12 3z"/>',
+  gear:'<circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/><circle cx="12" cy="12" r="6.3"/>',
+  restart:'<path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4v5h5"/><path d="M12 8.5l.9 2 2.1.4-1.5 1.5.4 2.1-1.9-1-1.9 1 .4-2.1-1.5-1.5 2.1-.4z" fill="currentColor"/>',
+  left:'<path d="M15 5l-7 7 7 7"/>',
+  right:'<path d="M9 5l7 7-7 7"/>',
+  pencil:'<path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/>'
+});
+/* РОЛИ. Роль задаёт режим по умолчанию и добавляет одну строку под «Картиной».
+   extra(m, a, b, c, link, pal) получает режим и карты броска. */
+const ROLES=[
+  {id:'seek', name:'Просто ищу идею', icon:'bulb', mode:'world', extra:null},
+  {id:'writer', name:'Писатель', icon:'quill', mode:'char', extra:(m,a,b)=>['Первая фраза','«Всё началось с одной вещи: '+lc(b)+'.»']},
+  {id:'screen', name:'Сценарист', icon:'scroll', mode:'char', extra:(m,a,b,c,l)=>['Завязка', m==='world'
+    ? 'В первой сцене '+lc(b)+' появляется без объяснений. То, что это '+l.role+', зритель узнаёт только в финале.'
+    : 'Деталь видна с первого кадра, но никто не знает, что это '+l.role+'. Правда раскрывается в финале.']},
+  {id:'artist', name:'Художник', icon:'brush', mode:'world', extra:(m,a,b,c,l,p)=>['Главный кадр', m==='world'
+    ? 'Передний план: '+lc(b)+'. Фон: '+lc(a)+'. Свет: '+lc(c.main)+'. Палитра: '+p[0]+', акцент '+p[5]+'.'
+    : 'Силуэт: '+lc(a)+'. Акцентная деталь: '+lc(b)+'. Палитра: '+p[0]+', акцент '+p[5]+'.']},
+  {id:'director', name:'Режиссёр, аниматор', icon:'camera', mode:'world', extra:(m,a,b,c)=>['Три кадра', m==='world'
+    ? '1. Общий: '+lc(a)+'. 2. Крупный: '+lc(b)+'. 3. Финал: '+lc(c.main)+', '+lc(c.sub)+'.'
+    : '1. Общий: '+lc(a)+'. 2. Крупный: '+lc(b)+'. 3. Финал: '+lc(c.sub)+'.']},
+  {id:'dnd', name:'Мастер D&D', icon:'die', mode:'world', extra:(m,a,b,c,l)=>['Крючок для игроков', m==='world'
+    ? 'Местные шепчут, что '+lc(b)+' — это '+l.role+'. Кто-то хочет это уничтожить, и героям платят, чтобы узнать кто.'
+    : 'Этот персонаж заплатит героям, лишь бы никто не узнал правду о детали: '+lc(b)+'.']},
+  {id:'game', name:'Геймдизайнер', icon:'pad', mode:'world', extra:(m,a,b,c)=>['Уровень', m==='world'
+    ? 'Игрок попадает сюда: '+lc(a)+'. Цель: добраться до объекта — '+lc(b)+'. Подсказка в окружении: '+lc(c.sub)+'.'
+    : 'Это NPC или босс. Особенность: '+lc(c.sub)+'. Слабое место: '+lc(b)+'.']}
+];
+const roleById=id=>ROLES.find(r=>r.id===id);
 const MADNESS=['спокойно','смело','безумно'];
 const SLOTS=5;
 const blankHand=()=>({a:{v:null,era:null,lock:false}, b:{v:null,era:null,lock:false}, c:{v:null,lock:false}, link:{v:null,lock:false}});
-const S={mode:'world', era:null, customEra:'', mad:1, scr:'table', hands:{world:blankHand(), char:blankHand()},
+// stage: role — первый экран «Кто ты?», era — одна большая карта эпохи, table — стол с четырьмя картами
+const S={role:null, stage:'role', pick:null, mode:'world', era:null, customEra:'', mad:1, scr:'table', hands:{world:blankHand(), char:blankHand()},
   potion:null, stale:false, brewing:false, spellMs:864e5, shelved:false, shelfTab:'live'};
 const $=id=>document.getElementById(id);
-const PREF_KEY='inkling-pref-v7';
-function savePref(){ try{ localStorage.setItem(PREF_KEY,JSON.stringify({mode:S.mode, era:S.era?S.era.id:null, customEra:S.customEra, mad:S.mad})); }catch(e){} }
+const PREF_KEY='inkling-pref-v8';
+function savePref(){ try{ localStorage.setItem(PREF_KEY,JSON.stringify({role:S.role?S.role.id:null, mode:S.mode, era:S.era?S.era.id:null, customEra:S.customEra, mad:S.mad})); }catch(e){} }
 function loadPref(){ try{ return JSON.parse(localStorage.getItem(PREF_KEY)||'null'); }catch(e){ return null; } }
 function el(tag,cls,text){ const e=document.createElement(tag); if(cls) e.className=cls; if(text!=null) e.textContent=text; return e; }
 function toast(msg,bad){ const t=el('div','toast'+(bad?' bad':''),msg); $('app').appendChild(t); setTimeout(()=>t.remove(),2700); }
@@ -451,27 +522,42 @@ function dealBoth(){ deal('world'); deal('char'); S.potion=null; S.stale=false; 
 
 /* ---------- шапка, вкладки, главная кнопка ---------- */
 function renderChrome(){
-  $('eraBtn').innerHTML=SV(S.era?(S.era.icon||'era'):'era',24,2);
-  $('ttlSub').textContent=MODE[S.mode].name+(S.era?' · '+S.era.name:'');
+  $('menuBtn').innerHTML=SV(S.role?S.role.icon:'gear',24,2);
+  $('ttlSub').textContent=S.stage==='role'?'лавка идей':(S.role?S.role.name+' · ':'')+MODE[S.mode].name;
+  const hideBottom=S.stage==='role'&&S.scr==='table';
+  $('brewBtn').hidden=hideBottom; document.querySelector('.modes').hidden=hideBottom;
+  $('newBtn').innerHTML=SV('restart',22,2)+'<span>Новая идея</span>'; $('newBtn').hidden=S.stage!=='table';
   const sb=$('shelfBtn'); sb.innerHTML=SV('flask',22,2); sb.setAttribute('aria-pressed',S.scr==='shelf');
   const broken=shelf.slots.filter(v=>v.broken).length, hot=shelf.slots.filter(v=>!v.broken&&v.due-Date.now()<864e5).length, live=shelf.slots.length;
   const n=broken||hot||live; if(n){ const d=el('span','dot',String(n)); sb.appendChild(d); }
-  const b=$('brewBtn'); b.innerHTML=STAR(16)+'<span></span>'+STAR(16); b.querySelector('span').textContent=S.brewing?'Котёл бурлит…':'Сварить зелье';
+  const b=$('brewBtn'); b.innerHTML=STAR(16)+'<span></span>'+STAR(16);
+  b.querySelector('span').textContent=S.brewing?'Котёл бурлит…':S.stage==='era'?'Выбор сделан':'Сварить зелье';
   b.disabled=S.brewing; b.classList.toggle('urge',S.stale);
   document.querySelectorAll('.mode').forEach(m=>{ m.innerHTML=SV(MODE[m.dataset.m].icon,22,2)+'<span></span>'; m.querySelector('span').textContent=MODE[m.dataset.m].name; m.setAttribute('aria-pressed',S.scr==='table'&&S.mode===m.dataset.m); });
 }
 document.querySelectorAll('.mode').forEach(m=>m.onclick=()=>{ S.mode=m.dataset.m; S.potion=null; S.stale=false; S.shelved=false; savePref(); play('deal'); show('table'); });
 $('shelfBtn').onclick=()=>{ play('pin'); show(S.scr==='shelf'?'table':'shelf'); };
-$('eraBtn').onclick=()=>{ play('pin'); eraSheet(); };
-$('brewBtn').onclick=()=>{ if(!S.era){ eraSheet(); return; } if(S.scr!=='table') show('table'); brew(); };
+$('menuBtn').onclick=()=>{ play('pin'); menuSheet(); };
+$('brewBtn').onclick=()=>{
+  if(S.scr!=='table'){ show('table'); if(S.stage!=='table') return; }
+  if(S.stage==='era') confirmEra(); else if(S.stage==='table') brew();
+};
+// «Новая идея»: снимаем все булавки и возвращаемся к карте эпохи
+$('newBtn').onclick=()=>{ ['world','char'].forEach(m=>Object.values(S.hands[m]).forEach(c=>{ c.lock=false; c.rndEra=false; }));
+  S.potion=null; S.stale=false; S.shelved=false; S.pick=S.era; S.stage='era'; play('deal'); show('table'); };
 function show(s){ S.scr=s; $('s-table').hidden=s!=='table'; $('s-shelf').hidden=s!=='shelf'; (s==='table'?renderTable:renderShelf)(); renderChrome(); }
 
 /* ---------- стол ---------- */
 function markStale(){ if(S.potion && !S.brewing && !S.shelved){ S.stale=true; renderChrome(); } }
 function renderTable(){
   const t=$('s-table'); t.innerHTML='';
-  if(!S.era){ const e=el('div','empty'); e.innerHTML=STAR(26)+SV('deck',64,1.8); e.append(el('p',null,'Выбери эпоху, и Мирт разложит карты.'));
-    const b=el('button','pill dark','Выбрать эпоху'); b.onclick=eraSheet; e.appendChild(b); t.appendChild(e); return; }
+  if(S.stage==='role') return renderRoles(t);
+  if(S.stage==='era') return renderEraPick(t);
+  const mini=el('button','era-mini'); mini.type='button'; mini.id='eraMini'; mini.setAttribute('aria-label','Эпоха: '+S.era.name+'. Выбрать другую');
+  mini.innerHTML=`<span class="cardlet">${SV(S.era.icon||'era',22,2)}</span><span><b></b><small>сменить эпоху</small></span>`;
+  mini.querySelector('b').textContent=S.era.name;
+  mini.onclick=()=>{ S.pick=S.era; S.stage='era'; play('pin'); show('table'); };
+  t.appendChild(mini);
   const h=el('div','hand'); h.id='hand';
   const row=el('div','row center');
   const seg=el('div','seg'); seg.setAttribute('role','group'); seg.setAttribute('aria-label','Насколько далёкие эпохи смешивать');
@@ -532,24 +618,78 @@ function fitCard(card){
 let fitTimer; window.addEventListener('resize',()=>{ clearTimeout(fitTimer); fitTimer=setTimeout(()=>{ if(S.scr==='table'&&S.era) renderHand(); },150); });
 
 /* ---------- выбор эпохи ---------- */
+// порядок перелистывания: сначала популярные, потом остальные, «Смесь эпох» и своя эпоха
 const POPULAR=['med','vic','fut','spc'];
-function eraSheet(){
+function eraCycle(){
+  const list=[...POPULAR.map(id=>ERAS.find(e=>e.id===id)), ...ERAS.filter(e=>!POPULAR.includes(e.id)), {id:'mix',name:'Смесь эпох',icon:'swirl'}];
+  if(S.customEra) list.push(customEraObj());
+  return list;
+}
+
+/* «Кто ты?» */
+function renderRoles(t){
+  const box=el('div','roles');
+  box.append(el('h2',null,'Кто ты?'), el('p','lead','Мирт подберёт итог броска под твоё ремесло. Поменять можно в любой момент'));
+  const btn=r=>{ const b=el('button','role'+(r.id==='seek'?' main':'')); b.type='button'; b.setAttribute('aria-pressed',!!(S.role&&S.role.id===r.id));
+    b.innerHTML=SV(r.icon,r.id==='seek'?28:30,2); b.appendChild(el('span',null,r.name));
+    b.onclick=()=>{ setRole(r); S.pick=S.era||ERAS.find(e=>e.id===POPULAR[0]); S.stage='era'; play('pick'); show('table'); }; return b; };
+  box.appendChild(btn(ROLES[0]));
+  const g=el('div','role-grid'); ROLES.slice(1).forEach(r=>g.appendChild(btn(r))); box.appendChild(g);
+  t.appendChild(box);
+}
+function setRole(r){ S.role=r; S.mode=r.mode; S.potion=null; savePref(); }
+
+/* одна большая карта эпохи: стрелки, кубик, своя эпоха, затем «Выбор сделан» */
+function renderEraPick(t){
+  const list=eraCycle(); if(!S.pick) S.pick=list[0];
+  let i=list.findIndex(e=>e.id===S.pick.id); if(i<0){ i=0; S.pick=list[0]; }
+  const st=el('div','stage');
+  const card=el('div','pcard era'); card.id='eraBig';
+  card.innerHTML=`<span class="kind">эпоха</span><span class="glyph">${SV(S.pick.icon||'era',72,1.6)}</span><span class="name"></span><span class="count"></span>`;
+  card.querySelector('.name').textContent=S.pick.name; card.querySelector('.count').textContent=(i+1)+' / '+list.length;
+  const go=d=>{ S.pick=list[(i+d+list.length)%list.length]; play('flip'); renderTable(); const c=$('eraBig'); c.classList.add('flip'); };
+  let x0=null; card.addEventListener('pointerdown',e=>{ x0=e.clientX; }); card.addEventListener('pointerup',e=>{ if(x0!==null&&Math.abs(e.clientX-x0)>40) go(e.clientX<x0?1:-1); x0=null; });
+  const nav=el('div','eranav');
+  const prev=el('button','mini'); prev.type='button'; prev.innerHTML=SV('left',22,2.4); prev.setAttribute('aria-label','Предыдущая эпоха'); prev.onclick=()=>go(-1);
+  const dice=el('button','mini'); dice.type='button'; dice.innerHTML=SV('die',20,2); dice.setAttribute('aria-label','Случайная эпоха');
+  dice.onclick=()=>{ let r; do{ r=rnd(ERAS); }while(r.id===S.pick.id); S.pick=r; play('flip'); renderTable(); $('eraBig').classList.add('flip'); };
+  const own=el('button','pill'); own.type='button'; own.innerHTML=SV('pencil',16,2); own.append(' Своя'); own.onclick=customEraSheet;
+  const next=el('button','mini'); next.type='button'; next.innerHTML=SV('right',22,2.4); next.setAttribute('aria-label','Следующая эпоха'); next.onclick=()=>go(1);
+  nav.append(prev,dice,own,next);
+  st.append(card,nav); t.appendChild(st); fitCard(card);
+}
+function customEraSheet(){
   openSheet(p=>{
-    p.appendChild(el('p','sheet-title','Эпоха'));
-    const pick=e=>{ S.era=e.id==='rnd'?rnd(ERAS):e; dealBoth(); savePref(); closeSheet(); play('deal'); show('table'); };
-    const opt=e=>{ const b=el('button','opt'); b.type='button'; b.setAttribute('aria-pressed',!!(S.era&&S.era.id===e.id)); b.innerHTML=SV(e.icon,26,2); b.appendChild(el('span',null,e.name)); b.onclick=()=>pick(e); return b; };
-    const s1=el('div','sheet-sec'); s1.appendChild(el('span','label','популярные'));
-    const g1=el('div','eras'); POPULAR.forEach(id=>g1.appendChild(opt(ERAS.find(e=>e.id===id)))); g1.appendChild(opt({id:'rnd',name:'Случайная',icon:'die'}));
-    const more=el('button','opt'); more.type='button'; more.innerHTML=SV('deck',26,2); more.appendChild(el('span',null,'Все эпохи')); g1.appendChild(more);
-    s1.appendChild(g1);
-    const s2=el('div','sheet-sec'); s2.hidden=true; s2.appendChild(el('span','label','все эпохи'));
-    const g2=el('div','eras'); ERAS.filter(e=>!POPULAR.includes(e.id)).forEach(e=>g2.appendChild(opt(e))); g2.appendChild(opt({id:'mix',name:'Смесь эпох',icon:'swirl'})); s2.appendChild(g2);
-    more.onclick=()=>{ s2.hidden=!s2.hidden; play('deal'); if(!s2.hidden) s2.scrollIntoView({behavior:'smooth',block:'nearest'}); };
-    const s3=el('div','sheet-sec'); s3.appendChild(el('span','label','своя эпоха'));
+    p.appendChild(el('p','sheet-title','Своя эпоха'));
     const f=el('form','customrow'); const inp=el('input'); inp.type='text'; inp.id='customEra'; inp.placeholder='Япония эпохи Мэйдзи'; inp.autocomplete='off'; inp.value=S.customEra;
-    const go=el('button','pill','Взять'); go.type='submit';
-    f.onsubmit=e=>{ e.preventDefault(); const v=inp.value.trim(); if(!v){ toast('Впиши свою эпоху',true); return; } S.customEra=v.slice(0,50); pick(customEraObj()); };
-    f.append(inp,go); s3.appendChild(f);
+    const go=el('button','pill dark','Взять'); go.type='submit';
+    f.onsubmit=e=>{ e.preventDefault(); const v=inp.value.trim(); if(!v){ toast('Впиши свою эпоху',true); return; } S.customEra=v.slice(0,50); S.pick=customEraObj(); closeSheet(); play('flip'); show('table'); };
+    f.append(inp,go); p.appendChild(f);
+    p.appendChild(el('p','status','Слова для карт возьмутся из разных эпох, а подпись останется твоей.'));
+    setTimeout(()=>inp.focus(),300);
+  });
+}
+// карта эпохи уменьшается и улетает наверх, а на стол раскладываются четыре карты
+function confirmEra(){
+  const big=$('eraBig'), from=big?big.getBoundingClientRect():null;
+  const changed=!S.era||S.era.id!==S.pick.id;
+  S.era=S.pick;
+  if(changed||!S.hands.world.a.v) dealBoth(); else { ['world','char'].forEach(m=>{ const keep=S.mode; S.mode=m; const H=hand(); ['a','b','c','link'].forEach(k=>{ if(!H[k].lock){ if(k==='a') H.a.era=baseEra(); draw(k); } }); S.mode=keep; }); S.potion=null; }
+  S.stage='table'; savePref(); play('deal'); show('table');
+  const mini=document.querySelector('#eraMini .cardlet');
+  if(from&&mini){ const to=mini.getBoundingClientRect(), s=from.width/to.width;
+    mini.animate([{transform:`translate(${from.left+from.width/2-(to.left+to.width/2)}px,${from.top+from.height/2-(to.top+to.height/2)}px) scale(${s})`},{transform:'none'}],{duration:480,easing:'cubic-bezier(.2,.8,.2,1)'}); }
+}
+
+/* меню настроек: роль, тема, звук */
+function menuSheet(){
+  openSheet(p=>{
+    p.appendChild(el('p','sheet-title','Настройки'));
+    const s1=el('div','sheet-sec'); s1.appendChild(el('span','label','кто ты'));
+    const g=el('div','eras');
+    ROLES.forEach(r=>{ const b=el('button','opt'); b.type='button'; b.setAttribute('aria-pressed',!!(S.role&&S.role.id===r.id)); b.innerHTML=SV(r.icon,24,2); b.appendChild(el('span',null,r.name));
+      b.onclick=()=>{ setRole(r); if(S.stage==='role'){ S.pick=ERAS.find(e=>e.id===POPULAR[0]); S.stage='era'; } closeSheet(); play('pick'); toast(r.name); show('table'); }; g.appendChild(b); });
+    s1.appendChild(g);
     const snd=el('button','pill'); snd.type='button';
     const paint=()=>{ snd.innerHTML=SV(AU.on?'sound':'mute',16,2); snd.append(AU.on?' Звук включён':' Звук выключен'); };
     paint(); snd.onclick=()=>{ AU.on=!AU.on; try{ localStorage.setItem('inkling-sound',AU.on?'on':'off'); }catch(e){} paint(); play('pin'); };
@@ -557,7 +697,7 @@ function eraSheet(){
     const paintT=()=>{ thm.textContent=isDark()?'Тема: тёмная':'Тема: светлая'; };
     paintT(); thm.onclick=()=>{ toggleTheme(); paintT(); play('pin'); };
     const row=el('div','row'); row.style.flexWrap='wrap'; row.append(snd,thm);
-    p.append(s1,s2,s3,row);
+    p.append(s1,row);
   });
 }
 
@@ -570,7 +710,8 @@ function buildPotion(){
     : `${a}. При себе — ${lc(b)}. ${c.main}. ${c.sub}. Это ${L2.role} — чтобы ${L2.why}.`;
   const K=MODE[S.mode].kinds;
   const eraNames=[...new Set([H.a.era&&H.a.era.name, !H.b.wild&&H.b.era&&H.b.era.name].filter(Boolean))];
-  return {title:makeTitle(), mode:S.mode, eras:eraNames, picture, pal:pal.slice(0,6),
+  const extra=S.role&&S.role.extra?S.role.extra(S.mode,a,b,c,L2,pal):null;
+  return {title:makeTitle(), mode:S.mode, eras:eraNames, picture, pal:pal.slice(0,6), extra,
     rows:[[K.a[1],K.a[0],a],[K.b[1],K.b[0],b+(H.b.wild?' (дикая колода)':(H.b.era&&H.a.era&&H.b.era.id!==H.a.era.id?' ('+H.b.era.name+')':''))],[K.c[1],K.c[0],c.main+'. '+c.sub+'. '+uc(pal[0])+', акцент '+pal[5]+'.'],['link','Звено','Это '+L2.role+' — чтобы '+L2.why+'.']]};
 }
 function brew(){
@@ -584,10 +725,11 @@ function recipe(p,z,mode){
   const t=el('div','t'); const ch=el('div','chips'); ch.appendChild(el('span','chip',MODE[z.mode].name)); z.eras.forEach(n=>ch.appendChild(el('span','chip',n)));
   t.append(el('h3',null,z.title), ch); head.append(vb,t);
   const pic=el('div','picture'); pic.appendChild(el('b',null,'Картина')); pic.append(z.picture);
+  if(z.extra){ const ex=el('div','extra'); ex.appendChild(el('b',null,z.extra[0])); ex.append(z.extra[1]); p.append(head,pic,ex); }
   const dl=el('dl','ingr');
   z.rows.forEach(([icon,label,val])=>{ const dt=el('dt'); dt.innerHTML=SV(icon,14,2); dt.append(label); const dd=el('dd',null,val);
     if((label==='Воздух'||label==='Манера')&&z.pal) dd.appendChild(swatchEl(z.pal)); const w=el('div'); w.style.display='contents'; w.append(dt,dd); dl.appendChild(w); });
-  p.append(head,pic,dl);
+  if(z.extra) p.appendChild(dl); else p.append(head,pic,dl);
   const act=el('div','actions');
   const cp=el('button','pill','Скопировать'); cp.type='button'; cp.onclick=()=>copy(z,cp);
   if(mode==='fresh'){
@@ -613,7 +755,7 @@ function recipe(p,z,mode){
     act.append(ok,cp); p.append(s2,act);
   } else { p.appendChild(el('p','status','Воплощено. Эта склянка не разобьётся.')); act.appendChild(cp); p.appendChild(act); }
 }
-function copy(z,btn){ const txt=z.title+' ('+MODE[z.mode].name+', '+z.eras.join(' + ')+')\n\n'+z.picture+'\n\n'+z.rows.map(r=>r[1]+': '+r[2]).join('\n');
+function copy(z,btn){ const txt=z.title+' ('+MODE[z.mode].name+', '+z.eras.join(' + ')+')\n\n'+z.picture+(z.extra?'\n\n'+z.extra[0]+': '+z.extra[1]:'')+'\n\n'+z.rows.map(r=>r[1]+': '+r[2]).join('\n');
   try{ navigator.clipboard.writeText(txt).then(()=>btn.textContent='Скопировано',()=>btn.textContent='Не получилось'); }catch(e){ btn.textContent='Не получилось'; } }
 
 /* ---------- лист снизу ---------- */
@@ -679,7 +821,7 @@ function renderShelf(){
   for(let i=0;i<6;i++){
     const v=shelf.slots[i];
     if(i===5){ const b=el('button','slot empty'); b.type='button'; b.innerHTML=SV('flask',30,2)+'<span class="nm"></span>'; b.querySelector('.nm').textContent='Воплощено: '+shelf.done.length; b.onclick=()=>{ S.shelfTab='done'; renderShelf(); }; box.appendChild(b); continue; }
-    if(!v){ const b=el('button','slot empty'); b.type='button'; b.innerHTML='<span class="plus">+</span><span class="nm">Свари зелье</span>'; b.onclick=()=>{ if(!S.era){ eraSheet(); return; } show('table'); brew(); }; box.appendChild(b); continue; }
+    if(!v){ const b=el('button','slot empty'); b.type='button'; b.innerHTML='<span class="plus">+</span><span class="nm">Свари зелье</span>'; b.onclick=()=>{ show('table'); if(S.stage==='table') brew(); }; box.appendChild(b); continue; }
     if(v.broken){
       const d=el('div','slot broken'); d.dataset.id=v.id;
       d.innerHTML=`<span class="art">${shardsSVG()}</span><span class="nm"></span><span class="why">Идея ушла к другому автору</span>`;
@@ -716,9 +858,9 @@ setInterval(renderChrome,30000);
 /* ---------- старт ---------- */
 (function init(){
   const pref=loadPref();
-  if(pref){ S.mode=MODE[pref.mode]?pref.mode:'world'; S.customEra=pref.customEra||''; S.mad=pref.mad??1; if(pref.era){ const e=eraById(pref.era); if(e){ S.era=e; dealBoth(); } } }
+  if(pref){ S.role=roleById(pref.role)||null; S.mode=MODE[pref.mode]?pref.mode:'world'; S.customEra=pref.customEra||''; S.mad=pref.mad??1; if(pref.era){ const e=eraById(pref.era); if(e){ S.era=e; dealBoth(); } } }
+  S.stage = !S.role ? 'role' : !S.era ? 'era' : 'table';
   show('table');
-  if(!S.era) eraSheet();
 })();
 </script>
 

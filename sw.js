@@ -1,6 +1,6 @@
 // Inkling service worker: keeps the app working offline.
 // After changing index.html, bump VERSION so phones pick up the new build.
-const VERSION = 'inkling-v1';
+const VERSION = 'inkling-v2';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/icon-maskable-512.png'];
 
 self.addEventListener('install', event => {
